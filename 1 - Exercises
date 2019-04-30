@@ -22,7 +22,7 @@ for purchase in purchases:
 
 print ("This week, you spent: ",weekly_spendings)
 
-#------------------------------------------------Funções-------------------------------------------------
+#-----------------------------------------------------Funções-------------------------------------------------
 
 #importando as bibliotecas
 from datetime import date
@@ -40,3 +40,14 @@ def monday_check(specimen_date):
 print ("Esse programa iŕa mostrar qual o dia da semana: ")
 today = date.today()
 print (monday_check (today))
+
+#-------------------------------------------------------Class-------------------------------------------------
+
+class Cat:
+    
+    #inicializador / atributos da instância
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+    def hungry(self):
+        print("Miaou")
