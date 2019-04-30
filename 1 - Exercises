@@ -51,3 +51,6 @@ class Cat:
         self.age = age
     def hungry(self):
         print("Miaou")
+
+floki = Cat("floki", 3)
+floki.hungry ()
