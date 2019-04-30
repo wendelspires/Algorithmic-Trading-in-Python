@@ -1,0 +1,42 @@
+#------------------------------------------------If/Else/Elif---------------------------------------
+
+number = int(input("WHat's your magic number? "))
+
+if number > 0:
+    print("That's a positive number!")
+elif number < 0:
+    print("That's a negative number!")
+else:
+    print("That's probably... nothing")
+    
+#---------------------------------------------------------For-----------------------------------------------------
+
+purchases = [6.9,7.2,10.3,4.5,6.8,7.4,11.4,3.8]
+
+weekly_spendings = 0
+for purchase in purchases:
+    weekly_spendings = weekly_spendings + purchase
+    #ele fará o loop de qual a quantidade que vc gastou no final de semana
+    #primeiro ele se inicia em 0, depois vai somando os valores
+    #6.9 + 7.2 + 10.3 ....
+
+print ("This week, you spent: ",weekly_spendings)
+
+#------------------------------------------------Funções-------------------------------------------------
+
+#importando as bibliotecas
+from datetime import date
+
+#função
+def monday_check(specimen_date):
+    if specimen_date.weekday () == 0:
+        message = "Segunda novamente! "
+    
+    else:
+        message = "Hoje não é segunda! "
+    return message
+
+#Script
+print ("Esse programa iŕa mostrar qual o dia da semana: ")
+today = date.today()
+print (monday_check (today))
