@@ -1,0 +1,64 @@
+# This strategy was taken from http://www.investopedia.com/articles/trading/08/atr.asp
+
+# The idea is to use ATR to identify breakouts, if the price goes higher than
+# the previous close + ATR, a price breakout has occurred. The position is closed when
+# the price goes 1 ATR below the previous close. 
+
+# This algorithm uses ATR as a momentum strategy, but the same signal can be used for 
+# a reversion strategy, since ATR doesn't indicate the price direction.
+
+import talib
+import numpy as np
+import pandas as pd
+
+# Setup our variables
+def initialize(context):
+    # SPY
+    context.spy = sid(8554)
+    
+    # Algorithm will only take long positions.
+    # It will stop if encounters a short position. 
+    set_long_only()
+    
+    schedule_function(rebalance, date_rules.every_day(), time_rules.market_open())
+
+# Rebalance daily.
+def rebalance(context, data):
+    
+    # Track our position
+    current_position = context.portfolio.positions[context.spy].amount
+    record(position_size=current_position)
+    
+    
+    # Load historical data for the stocks
+    hist = data.history(context.spy, ['high', 'low', 'close'], 30, '1d')
+    
+    # Calculate the ATR for the stock
+    atr = talib.ATR(hist['high'],
+                    hist['low'],
+                    hist['close'],
+                    timeperiod=14)[-1]
+    
+    price = data.current(context.spy, 'price')
+    
+    # Use the close price from yesterday because we trade at market open
+    prev_close = hist['close'][-2]
+    
+    # An upside breakout occurs when the price goes 1 ATR above the previous close
+    upside_signal = price - (prev_close + atr)
+    
+    # A downside breakout occurs when the previous close is 1 ATR above the price
+    downside_signal = prev_close - (price + atr)
+    
+    # Enter position when an upside breakout occurs. Invest our entire portfolio to go long.
+    if upside_signal > 0 and current_position <= 0 and data.can_trade(context.spy):
+        order_target_percent(context.spy, 1.0)
+    
+    # Exit position if a downside breakout occurs
+    elif downside_signal > 0 and current_position >= 0 and data.can_trade(context.spy):
+        order_target_percent(context.spy, 0.0)
+        
+    
+    record(upside_signal=upside_signal,
+           downside_signal=downside_signal,
+           ATR=atr)
