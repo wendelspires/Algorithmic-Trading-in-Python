@@ -1,0 +1,51 @@
+# This algorithm uses the talib Bollinger Bands function to determine entry entry 
+# points for long and short positions.
+
+# When the price breaks out of the upper Bollinger band, a short position
+# is opened. A long position is opened when the price dips below the lower band.
+
+import talib
+import numpy as np
+import pandas as pd
+
+# Setup our variables
+def initialize(context):
+    # SPY
+    context.spy = sid(8554)
+    
+    schedule_function(rebalance, date_rules.every_day(), time_rules.market_open())
+
+# Rebalance daily.
+def rebalance(context, data):
+    current_position = context.portfolio.positions[context.spy].amount
+    price=data.current(context.spy, 'price')
+    
+    # Load historical data for the stocks
+    prices = data.history(context.spy, 'price', 15, '1d')
+    
+    upper, middle, lower = talib.BBANDS(
+        prices, 
+        timeperiod=10,
+        # number of non-biased standard deviations from the mean
+        nbdevup=2,
+        nbdevdn=2,
+        # Moving average type: simple moving average here
+        matype=0)
+    
+    # If price is below the recent lower band and we have
+    # no long positions then invest the entire
+    # portfolio value into SPY
+    if price <= lower[-1] and current_position <= 0 and data.can_trade(context.spy):
+        order_target_percent(context.spy, 1.0)
+    
+    # If price is above the recent upper band and we have
+    # no short positions then invest the entire
+    # portfolio value to short SPY
+    elif price >= upper[-1] and current_position >= 0 and data.can_trade(context.spy):
+        order_target_percent(context.spy, -1.0)
+        
+    record(upper=upper[-1],
+           lower=lower[-1],
+           mean=middle[-1],
+           price=price,
+           position_size=current_position)
