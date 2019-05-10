@@ -1,0 +1,44 @@
+# This example algorithm uses the Relative Strength Index indicator as a buy/sell signal.
+# When the RSI is over 70, a stock can be seen as overbought and it's time to sell.
+# When the RSI is below 30, a stock can be seen as oversold and it's time to buy.
+
+import talib
+
+
+# Setup our variables
+def initialize(context):
+    context.stocks = symbols('MMM', 'SPY', 'GE')
+    context.target_pct_per_stock = 1.0 / len(context.stocks)
+    context.LOW_RSI = 30
+    context.HIGH_RSI = 70
+    
+    schedule_function(rebalance, date_rules.every_day(), time_rules.market_open())
+
+# Rebalance daily.
+def rebalance(context, data):
+    
+    # Load historical data for the stocks
+    prices = data.history(context.stocks, 'price', 20, '1d')
+    
+    rsis = {}
+    
+    # Loop through our list of stocks
+    for stock in context.stocks:
+        # Get the rsi of this stock.
+        rsi = talib.RSI(prices[stock], timeperiod=14)[-1]
+        rsis[stock] = rsi
+        
+        current_position = context.portfolio.positions[stock].amount
+        
+        # RSI is above 70 and we own shares, time to sell
+        if rsi > context.HIGH_RSI and current_position > 0 and data.can_trade(stock):
+            order_target(stock, 0)
+   
+        # RSI is below 30 and we don't have any shares, time to buy
+        elif rsi < context.LOW_RSI and current_position == 0 and data.can_trade(stock):
+            order_target_percent(stock, context.target_pct_per_stock)
+
+    # record the current RSI values of each stock
+    record(ge_rsi=rsis[symbol('GE')],
+           spy_rsi=rsis[symbol('SPY')],
+           mmm_rsi=rsis[symbol('MMM')])
