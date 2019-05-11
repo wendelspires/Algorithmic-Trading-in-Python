@@ -87,9 +87,9 @@ class BBRSI(IStrategy):
         """
         dataframe.loc[
             (
-                (
-                    (dataframe["close"] > dataframe['bb_middleband'] )
-                )
+                (dataframe["close"] > dataframe['bb_middleband'] )
             ),
             'sell'] = 1
+
         return dataframe
+
